@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/joho/godotenv"
 	"github.com/robfig/cron"
 	"item-alerts/internal/alerts"
@@ -11,14 +12,19 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic("Error loading .env file: " + err.Error())
+	// Load the .env file in development mode
+	isProduction := flag.Bool("production", false, "Run the app in production mode")
+	flag.Parse()
+	if !*isProduction {
+		err := godotenv.Load()
+		if err != nil {
+			panic("Error loading .env file: " + err.Error())
+		}
 	}
 
 	// Connect to the database
 	databaseService := db.NewDatabaseService()
-	err = databaseService.Init()
+	err := databaseService.Init()
 	if err != nil {
 		panic("Error initializing database: " + err.Error())
 	}
@@ -32,7 +38,6 @@ func main() {
 	}()
 
 	awsService := aws.NewAWSService(aws.NewAWSRepository())
-
 	notificationService := notifications.NewNotificationService(notifications.NewNotificationRepository(awsService))
 	itemService := items.NewItemService(items.NewItemRepository(databaseService))
 	alertService := alerts.NewAlertService(alerts.NewAlertRepository(databaseService, itemService, notificationService))
