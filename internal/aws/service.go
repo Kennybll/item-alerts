@@ -13,8 +13,8 @@ func NewAWSService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) Init() {
-	s.repo.Init()
+func (s *Service) Init() error {
+	return s.repo.Init()
 }
 
 func (s *Service) SendEmail(input *ses.SendTemplatedEmailInput) error {
